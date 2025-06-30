@@ -31,7 +31,7 @@ app.get("/fakechat", async (req, res) => {
   }
 
   const avatar = await Canvas.loadImage(avatarBuffer);
-  const bg = await Canvas.loadImage(path.join(__dirname, "bg.jpeg"));
+  const bg = await Canvas.loadImage(path.join(__dirname, "Screenshot_20250630-145701-01.jpeg"));
 
   const canvas = Canvas.createCanvas(720, 369);
   const ctx = canvas.getContext("2d");
