@@ -53,7 +53,7 @@ app.get("/fakechat", async (req, res) => {
   }
 
   const avatar = await Canvas.loadImage(avatarBuffer);
-  const bg = await Canvas.loadImage(path.join(__dirname, mode === "dark" ? "20250630_182908.jpg" : "20250630_182908.jpg"));
+  const bg = await Canvas.loadImage(path.join(__dirname, mode === "dark" ? "bg_dark.jpeg" : "Screenshot_20250630-145701-01.jpeg"));
 
   const canvas = Canvas.createCanvas(720, 369);
   const ctx = canvas.getContext("2d");
@@ -65,12 +65,12 @@ app.get("/fakechat", async (req, res) => {
   ctx.arc(80, 80, 50, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
   ctx.drawImage(avatar, 30, 30, 100, 100); ctx.restore();
 
-  // Name (bold and 5px lower)
+  // Name (bold, moved 5px down)
   ctx.font = "bold 40px Arial";
   ctx.fillStyle = mode === "dark" ? "#ffffff" : "#000000";
-  ctx.fillText(name, 150, 85); // previously 80 → now 85
+  ctx.fillText(name, 150, 85);
 
-  // Draw bubble
+  // Function to draw message bubble
   const drawMessage = (rawText, yPos) => {
     const text = parseRichText(rawText);
     const padding = 20;
@@ -84,7 +84,7 @@ app.get("/fakechat", async (req, res) => {
     const x = 150;
     const y = yPos;
 
-    // Bubble
+    // Message Bubble
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
     ctx.lineTo(x + boxWidth - radius, y);
@@ -100,36 +100,34 @@ app.get("/fakechat", async (req, res) => {
     ctx.fillStyle = mode === "dark" ? "#2f2f2f" : "#e0e0e0";
     ctx.fill();
 
-    // Text lines
+    // Draw each line of text
     ctx.fillStyle = mode === "dark" ? "#ffffff" : "#000000";
     lines.forEach((line, i) => {
-      let isBold = rawText.includes(`*${line}*`);
-      let isItalic = rawText.includes(`_${line}_`);
+      const isBold = rawText.includes(`*${line}*`);
+      const isItalic = rawText.includes(`_${line}_`);
       ctx.font = `${isItalic ? "italic " : ""}${isBold ? "bold " : ""}32px Arial`;
       ctx.fillText(line, x + padding, y + 40 + i * 40);
     });
 
-    // Return Y after bubble
     return { nextY: y + boxHeight + 10, lastY: y + boxHeight };
   };
 
   const msg1 = drawMessage(rawText1, 100);
   let msg2 = null;
-
   if (rawText2) {
     msg2 = drawMessage(rawText2, msg1.nextY);
   }
 
-  // Timestamp under last message
+  // Seen text (10px font, positioned below last message)
   const timeY = msg2 ? msg2.lastY + 10 : msg1.lastY + 10;
-  ctx.font = "5px Arial";
+  ctx.font = "10px Arial";
   ctx.fillStyle = "#999";
   ctx.fillText("Seen • 2:35 PM", 160, timeY);
 
-  // Seen avatar (bottom right)
+  // Seen avatar (bottom right, 16x16 = 5x smaller)
   ctx.save(); ctx.beginPath();
-  ctx.arc(680, 290, 40, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
-  ctx.drawImage(avatar, 640, 250, 80, 80); ctx.restore();
+  ctx.arc(688, 300, 8, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
+  ctx.drawImage(avatar, 680, 292, 16, 16); ctx.restore();
 
   res.setHeader("Content-Type", "image/png");
   res.send(canvas.toBuffer("image/png"));
