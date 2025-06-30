@@ -40,20 +40,20 @@ app.get("/fakechat", async (req, res) => {
 
   // Avatar (top left)
   ctx.save(); ctx.beginPath();
-  ctx.arc(35, 35, 20, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
-  ctx.drawImage(avatar, 15, 15, 40, 40); ctx.restore();
+  ctx.arc(40, 40, 25, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
+ctx.drawImage(avatar, 15, 15, 50, 50); ctx.restore();
 
   // Name and Message
-  ctx.font = "bold 22px Arial";
+  ctx.font = "bold 24px Arial";
   ctx.fillStyle = "#fff";
   ctx.fillText(name, 70, 40);
 
-  ctx.font = "20px Arial";
+  ctx.font = "28px Arial";
   ctx.fillStyle = "#fff";
   ctx.fillText(text1, 70, 70);
 
   if (text2) {
-    ctx.font = "italic 18px Arial";
+    ctx.font = "italic 26px Arial";
     ctx.fillStyle = "#ccc";
     ctx.fillText(text2, 100, 310);
   }
