@@ -5,10 +5,6 @@ const path = require("path");
 
 const app = express();
 
-app.get("/", (req, res) => {
-  res.send("✅ FakeChat API is running!");
-});
-
 function wrapText(ctx, text, maxWidth) {
   const words = text.split(" ");
   const lines = [];
@@ -28,9 +24,12 @@ function wrapText(ctx, text, maxWidth) {
 }
 
 function parseRichText(text) {
-  // Just remove *, _ for now (visual style handled via context settings)
   return text.replace(/\*/g, "").replace(/_/g, "");
 }
+
+app.get("/", (req, res) => {
+  res.send("✅ FakeChat API is running!");
+});
 
 app.get("/fakechat", async (req, res) => {
   const uid = req.query.uid;
@@ -66,12 +65,12 @@ app.get("/fakechat", async (req, res) => {
   ctx.arc(80, 80, 50, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
   ctx.drawImage(avatar, 30, 30, 100, 100); ctx.restore();
 
-  // Name
+  // Name (bold and 5px lower)
   ctx.font = "bold 40px Arial";
   ctx.fillStyle = mode === "dark" ? "#ffffff" : "#000000";
-  ctx.fillText(name, 150, 80);
+  ctx.fillText(name, 150, 85); // previously 80 → now 85
 
-  // Message bubble draw function with wrapping and dark mode
+  // Draw bubble
   const drawMessage = (rawText, yPos) => {
     const text = parseRichText(rawText);
     const padding = 20;
@@ -85,7 +84,7 @@ app.get("/fakechat", async (req, res) => {
     const x = 150;
     const y = yPos;
 
-    // Draw bubble
+    // Bubble
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
     ctx.lineTo(x + boxWidth - radius, y);
@@ -97,10 +96,11 @@ app.get("/fakechat", async (req, res) => {
     ctx.lineTo(x, y + radius);
     ctx.quadraticCurveTo(x, y, x + radius, y);
     ctx.closePath();
+
     ctx.fillStyle = mode === "dark" ? "#2f2f2f" : "#e0e0e0";
     ctx.fill();
 
-    // Draw text lines
+    // Text lines
     ctx.fillStyle = mode === "dark" ? "#ffffff" : "#000000";
     lines.forEach((line, i) => {
       let isBold = rawText.includes(`*${line}*`);
@@ -109,11 +109,22 @@ app.get("/fakechat", async (req, res) => {
       ctx.fillText(line, x + padding, y + 40 + i * 40);
     });
 
-    return y + boxHeight + 10;
+    // Return Y after bubble
+    return { nextY: y + boxHeight + 10, lastY: y + boxHeight };
   };
 
-  let nextY = drawMessage(rawText1, 100);
-  if (rawText2) nextY = drawMessage(rawText2, nextY);
+  const msg1 = drawMessage(rawText1, 100);
+  let msg2 = null;
+
+  if (rawText2) {
+    msg2 = drawMessage(rawText2, msg1.nextY);
+  }
+
+  // Timestamp under last message
+  const timeY = msg2 ? msg2.lastY + 10 : msg1.lastY + 10;
+  ctx.font = "5px Arial";
+  ctx.fillStyle = "#999";
+  ctx.fillText("Seen • 2:35 PM", 160, timeY);
 
   // Seen avatar (bottom right)
   ctx.save(); ctx.beginPath();
